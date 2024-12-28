@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BookmarkSite</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="fonts.css">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="images/icon48.png" alt="logo" class="logo-icon">
+                <span>BookmarkSite</span>
+            </div>
+            <div class="category-list">
+                <!-- 文件夹将在这里动态显示 -->
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="搜索书签...">
+                    <i class="ri-search-line search-icon" id="searchIcon"></i>
+                </div>
+                <button id="themeToggle" class="theme-toggle" title="切换主题">
+                    <i class="ri-sun-line light-icon"></i>
+                    <i class="ri-moon-line dark-icon"></i>
+                </button>
+            </div>
+
+            <div class="bookmarks-container" id="bookmarksContainer">
+                <!-- 书签将在这里动态显示 -->
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

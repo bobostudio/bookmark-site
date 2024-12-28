@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "BookmarkSite",
+  "version": "1.0",
+  "description": "一个优雅的书签管理器，让您的高效管理和查询书签",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "clipboard-write"
+  ],
+  "host_permissions": [],
+  "action": {
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
