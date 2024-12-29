@@ -45,3 +45,34 @@ BookmarkSite 就是为解决这些问题而生的！它提供：
 - ⚡ 高性能实时搜索，响应迅速
 - 🎨 现代化 UI 设计，提供流畅的用户体验
 - 💡 智能的搜索算法，提供更准确的匹配结果
+
+
+## 打赏
+
+如果您觉得 BookmarkSite 对您有帮助，欢迎打赏支持！
+
+<table>
+<tr>
+<td><img src="./images/wechat-qr.jpg" alt="微信支付" width="200"></td>
+<td><img src="./images/alipay-qr.jpg" alt="支付宝" width="200"></td>
+</tr>
+</table>
+
+
+## 联系方式
+
+- 邮箱：15919854639@163.com
+
+
+## 问题反馈
+
+- GitHub：https://github.com/bobostudio/bookmark-site/issues
+
+
+## 版权信息
+
+BookmarkSite 采用 [Apache License 2.0](LICENSE) 许可证, 您可以自由使用、修改和分发, 但请保留版权信息。
+
+
+
+

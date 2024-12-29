@@ -260,6 +260,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // 添加打赏功能控制
+    const donateBtn = document.querySelector('.donate-btn');
+    const donateModal = document.getElementById('donateModal');
+    const closeBtn = donateModal.querySelector('.close-btn');
+
+    donateBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        donateModal.classList.add('show');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        donateModal.classList.remove('show');
+    });
+
+    // 点击弹窗外部关闭
+    donateModal.addEventListener('click', (e) => {
+        if (e.target === donateModal) {
+            donateModal.classList.remove('show');
+        }
+    });
+
+    // ESC 键关闭弹窗
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && donateModal.classList.contains('show')) {
+            donateModal.classList.remove('show');
+        }
+    });
+
     // 初始加载
     loadFolders();
 });

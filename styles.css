@@ -168,7 +168,7 @@ body {
 
 .bookmarks-container {
     margin-top: 90px;
-    padding: 20px 32px 24px;
+    padding: 20px 32px 60px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
@@ -565,4 +565,161 @@ body {
 
 .share-icon:hover {
     color: var(--primary-color);
+}
+
+/* 更新版权信息样式 */
+.copyright {
+    position: fixed;
+    padding: 8px 16px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--sidebar-bg);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    backdrop-filter: blur(8px);
+}
+
+.copyright p {
+    margin: 0;
+}
+
+.contact-links {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.contact-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.contact-links a:hover {
+    color: var(--primary-color);
+}
+
+.contact-links i {
+    font-size: 14px;
+}
+
+/* 打赏按钮样式 */
+.donate-btn {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.donate-btn:hover {
+    color: #ff6b6b;
+}
+
+.donate-btn i {
+    font-size: 14px;
+}
+
+/* 打赏弹窗样式 */
+.donate-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.donate-modal.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.donate-content {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+    margin: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+.donate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.donate-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: var(--active-color);
+    color: var(--primary-color);
+}
+
+.donate-body {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+}
+
+.qr-container {
+    text-align: center;
+}
+
+.qr-code {
+    width: 160px;
+    
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.qr-container p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .donate-content {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .qr-code {
+    background: white;
+    padding: 8px;
 } 
