@@ -95,13 +95,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function loadBookmarksInFolder(folderId) {
         // 检查缓存中是否有数据
         if (bookmarksCache.has(folderId)) {
-            displayBookmarks(bookmarksCache.get(folderId));
+            const bookmarks = bookmarksCache.get(folderId);
+            displayBookmarks(bookmarks);
             return;
         }
 
         chrome.bookmarks.getChildren(folderId, function (bookmarks) {
             const bookmarksList = bookmarks.filter(b => b.url);
-            // 更新缓存
+            // 更新书签缓存
             bookmarksCache.set(folderId, bookmarksList);
             displayBookmarks(bookmarksList);
         });
@@ -113,7 +114,6 @@ document.addEventListener('DOMContentLoaded', function () {
         bookmarksContainer.innerHTML = '';
 
         const searchText = searchInput.value.toLowerCase().trim();
-
 
         // 高亮文本的辅助函数
         function highlightText(text, keyword) {
@@ -138,28 +138,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 const faviconImg = document.createElement('img');
                 faviconImg.className = 'favicon';
 
-                // 优化图标加载逻辑
-                let faviconUrl = faviconCache.get(bookmark.url);
-                if (faviconUrl === undefined) {
+                // 优化 favicon 获取逻辑
+                const loadFavicon = (url) => {
                     try {
-                        const url = new URL(bookmark.url);
-                        // 直接从网站根目录获取 favicon
-                        faviconUrl = `${url.protocol}//${url.hostname}/favicon.ico`;
-                        faviconCache.set(bookmark.url, faviconUrl);
-                    } catch (e) {
-                        faviconUrl = './images/icon128.png';
-                        faviconCache.set(bookmark.url, faviconUrl);
-                    }
-                }
+                        const urlObj = new URL(url);
+                        const domain = urlObj.hostname;
+                        // 直接使用 Google favicon 服务
+                        const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${domain}`;
+                        
+                        // 设置图片加载错误处理
+                        faviconImg.onerror = () => {
+                            faviconImg.src = './images/icon128.png';
+                            faviconCache.set(url, './images/icon128.png');
+                            faviconImg.onerror = null; // 清除错误处理器
+                        };
 
-                faviconImg.src = faviconUrl;
-                faviconImg.onerror = function () {
-                    // 图标加载失败时使用默认图标
-                    if (this.src !== './images/icon128.png') {
-                        this.src = './images/icon128.png';
-                        faviconCache.set(bookmark.url, './images/icon128.png');
+                        faviconImg.src = googleFaviconUrl;
+                        faviconCache.set(url, googleFaviconUrl);
+                    } catch (e) {
+                        faviconImg.src = './images/icon128.png';
+                        faviconCache.set(url, './images/icon128.png');
                     }
                 };
+
+                // 从缓存获取或重新加载 favicon
+                const cachedFavicon = faviconCache.get(bookmark.url);
+                if (cachedFavicon) {
+                    faviconImg.src = cachedFavicon;
+                    // 如果缓存的是默认图标，不需要错误处理
+                    if (cachedFavicon !== './images/icon128.png') {
+                        faviconImg.onerror = () => {
+                            loadFavicon(bookmark.url);
+                        };
+                    }
+                } else {
+                    loadFavicon(bookmark.url);
+                }
 
                 const titleSpan = document.createElement('span');
                 titleSpan.className = 'title';
