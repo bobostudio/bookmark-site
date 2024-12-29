@@ -695,6 +695,7 @@ body {
     display: flex;
     justify-content: center;
     gap: 32px;
+    padding: 16px 0;
 }
 
 .qr-container {
@@ -706,6 +707,15 @@ body {
     
     border-radius: 8px;
     margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    background: white;
+}
+
+[data-theme="dark"] .qr-code {
+    background: white;
+    padding: 8px;
+    border: none;
 }
 
 .qr-container p {
