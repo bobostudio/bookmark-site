@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BookmarkSite</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="fonts.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
@@ -14,24 +16,25 @@
                 <img src="images/icon48.png" alt="logo" class="logo-icon">
                 <span>BookmarkSite</span>
             </div>
-            <div class="category-list">
+            <nav class="category-list" aria-label="书签文件夹">
                 <!-- 文件夹将在这里动态显示 -->
-            </div>
+            </nav>
         </div>
         
         <div class="main-content">
             <div class="header">
                 <div class="search-container">
+                    <label for="searchInput" class="sr-only">搜索书签</label>
                     <input type="text" id="searchInput" placeholder="搜索书签...">
-                    <i class="ri-search-line search-icon" id="searchIcon"></i>
+                    <i class="ri-search-line search-icon" id="searchIcon" role="button" aria-label="清除搜索"></i>
                 </div>
-                <button id="themeToggle" class="theme-toggle" title="切换主题">
-                    <i class="ri-sun-line light-icon"></i>
-                    <i class="ri-moon-line dark-icon"></i>
+                <button id="themeToggle" class="theme-toggle" aria-label="切换主题" title="切换主题">
+                    <i class="ri-sun-line light-icon" aria-hidden="true"></i>
+                    <i class="ri-moon-line dark-icon" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div class="bookmarks-container" id="bookmarksContainer">
+            <div class="bookmarks-container" id="bookmarksContainer" aria-live="polite">
                 <!-- 书签将在这里动态显示 -->
             </div>
         </div>
@@ -50,12 +53,12 @@
             </a>
         </div>
     </div>
-    <div class="donate-modal" id="donateModal">
+    <div class="donate-modal" id="donateModal" role="dialog" aria-modal="true" aria-label="打赏">
         <div class="donate-content">
             <div class="donate-header">
                 <h3>感谢支持</h3>
-                <button class="close-btn">
-                    <i class="ri-close-line"></i>
+                <button class="close-btn" aria-label="关闭">
+                    <i class="ri-close-line" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="donate-body">

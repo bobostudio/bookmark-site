@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentFolderId = '1'; // 默认显示书签栏
     let bookmarksCache = new Map(); // 添加书签缓存
 
+    // 安全的高亮文本函数：先转义HTML，再插入<mark>标签
+    function safeHighlight(text, keyword) {
+        if (!keyword) return null; // 返回null表示不需要高亮，调用方应使用textContent
+        // 先转义HTML特殊字符
+        const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedKeyword})`, 'gi');
+        return escaped.replace(regex, '<mark class="highlight">$1</mark>');
+    }
+
     // 加载文件夹列表
     function loadFolders() {
         chrome.bookmarks.getTree(function (bookmarkTreeNodes) {
@@ -36,11 +46,46 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 处理文件夹选中
+    function selectFolder(folderElement, folderId) {
+        if (currentFolderId === folderId) return;
+
+        document.querySelector('.category-item.active')?.classList.remove('active');
+        folderElement.classList.add('active');
+
+        bookmarksContainer.classList.add('fade-out');
+
+        function onFadeOut() {
+            bookmarksContainer.removeEventListener('transitionend', onFadeOut);
+            loadBookmarksInFolder(folderId);
+            currentFolderId = folderId;
+            bookmarksContainer.classList.remove('fade-out');
+            bookmarksContainer.classList.add('fade-in');
+
+            function onFadeIn() {
+                bookmarksContainer.removeEventListener('transitionend', onFadeIn);
+                bookmarksContainer.classList.remove('fade-in');
+            }
+            bookmarksContainer.addEventListener('transitionend', onFadeIn);
+        }
+        bookmarksContainer.addEventListener('transitionend', onFadeOut);
+
+        // 回退：如果transitionend没有触发（无transition时）
+        setTimeout(() => {
+            if (bookmarksContainer.classList.contains('fade-out')) {
+                bookmarksContainer.removeEventListener('transitionend', onFadeOut);
+                onFadeOut();
+            }
+        }, 200);
+    }
+
     // 添加文件夹到侧边栏
     function addFolderToSidebar(folder, isActive, fragment) {
         const folderElement = document.createElement('div');
         folderElement.className = `category-item${isActive ? ' active' : ''}`;
-        folderElement.dataset.folderId = folder.id; // 添加文件夹ID到dataset
+        folderElement.dataset.folderId = folder.id;
+        folderElement.setAttribute('role', 'button');
+        folderElement.setAttribute('tabindex', '0');
 
         // 创建文件夹内容容器
         const folderContent = document.createElement('div');
@@ -51,10 +96,15 @@ document.addEventListener('DOMContentLoaded', function () {
             folder.id === '2' ? 'ri-archive-line' :
                 'ri-folder-line';
 
-        folderContent.innerHTML = `
-            <i class="${iconClass}"></i>
-            <span>${folder.title}</span>
-        `;
+        const icon = document.createElement('i');
+        icon.className = iconClass;
+        icon.setAttribute('aria-hidden', 'true');
+
+        const span = document.createElement('span');
+        span.textContent = folder.title;
+
+        folderContent.appendChild(icon);
+        folderContent.appendChild(span);
 
         // 创建操作按钮容器
         const folderActions = document.createElement('div');
@@ -64,30 +114,17 @@ document.addEventListener('DOMContentLoaded', function () {
         folderElement.appendChild(folderActions);
         fragment.appendChild(folderElement);
 
-        // 文件夹点击事件移到整个folderElement上
-        folderElement.addEventListener('click', (e) => {
-            // 如果已经是当前文件夹，不需要重新加载
-            if (currentFolderId === folder.id) return;
+        // 文件夹点击事件
+        folderElement.addEventListener('click', () => {
+            selectFolder(folderElement, folder.id);
+        });
 
-            // 更新active状态
-            document.querySelector('.category-item.active')?.classList.remove('active');
-            folderElement.classList.add('active');
-
-            // 添加过渡动画类
-            bookmarksContainer.classList.add('fade-out');
-
-            // 在动画结束后加载新内容
-            setTimeout(() => {
-                loadBookmarksInFolder(folder.id);
-                currentFolderId = folder.id;
-                bookmarksContainer.classList.remove('fade-out');
-                bookmarksContainer.classList.add('fade-in');
-
-                // 移除fade-in类
-                setTimeout(() => {
-                    bookmarksContainer.classList.remove('fade-in');
-                }, 300);
-            }, 150);
+        // 键盘支持
+        folderElement.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectFolder(folderElement, folder.id);
+            }
         });
     }
 
@@ -99,6 +136,13 @@ document.addEventListener('DOMContentLoaded', function () {
             displayBookmarks(bookmarks);
             return;
         }
+
+        // 显示加载状态
+        bookmarksContainer.innerHTML = '';
+        const loadingEl = document.createElement('div');
+        loadingEl.className = 'empty-state';
+        loadingEl.textContent = '加载中...';
+        bookmarksContainer.appendChild(loadingEl);
 
         chrome.bookmarks.getChildren(folderId, function (bookmarks) {
             const bookmarksList = bookmarks.filter(b => b.url);
@@ -115,19 +159,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const searchText = searchInput.value.toLowerCase().trim();
 
-        // 高亮文本的辅助函数
-        function highlightText(text, keyword) {
-            if (!keyword) return text;
-            const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-            return text.replace(regex, '<mark class="highlight">$1</mark>');
+        // 空状态
+        if (bookmarks.length === 0) {
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'empty-state';
+            emptyEl.textContent = searchText ? '没有找到匹配的书签' : '此文件夹中没有书签';
+            bookmarksContainer.appendChild(emptyEl);
+            return;
         }
 
         // 创建书签元素
         bookmarks.forEach(bookmark => {
             try {
-                const bookmarkElement = document.createElement('div');
+                const bookmarkElement = document.createElement('a');
                 bookmarkElement.className = 'bookmark-item';
+                bookmarkElement.href = bookmark.url;
+                bookmarkElement.target = '_blank';
+                bookmarkElement.rel = 'noopener noreferrer';
+
+                // 阻止默认跳转，使用Chrome API打开新标签
+                bookmarkElement.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    chrome.tabs.create({ url: bookmark.url });
+                });
 
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'bookmark-content';
@@ -137,20 +191,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const faviconImg = document.createElement('img');
                 faviconImg.className = 'favicon';
+                faviconImg.alt = '';
 
                 // 优化 favicon 获取逻辑
                 const loadFavicon = (url) => {
                     try {
                         const urlObj = new URL(url);
                         const domain = urlObj.hostname;
-                        // 直接使用 Google favicon 服务
                         const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${domain}`;
-                        
-                        // 设置图片加载错误处理
+
                         faviconImg.onerror = () => {
                             faviconImg.src = './images/icon128.png';
                             faviconCache.set(url, './images/icon128.png');
-                            faviconImg.onerror = null; // 清除错误处理器
+                            faviconImg.onerror = null;
                         };
 
                         faviconImg.src = googleFaviconUrl;
@@ -161,11 +214,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 };
 
-                // 从缓存获取或重新加载 favicon
                 const cachedFavicon = faviconCache.get(bookmark.url);
                 if (cachedFavicon) {
                     faviconImg.src = cachedFavicon;
-                    // 如果缓存的是默认图标，不需要错误处理
                     if (cachedFavicon !== './images/icon128.png') {
                         faviconImg.onerror = () => {
                             loadFavicon(bookmark.url);
@@ -177,15 +228,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const titleSpan = document.createElement('span');
                 titleSpan.className = 'title';
-                titleSpan.innerHTML = searchText ?
-                    highlightText(bookmark.title || bookmark.url, searchText) :
-                    (bookmark.title || bookmark.url);
+                const titleText = bookmark.title || bookmark.url;
+                if (searchText) {
+                    titleSpan.innerHTML = safeHighlight(titleText, searchText);
+                } else {
+                    titleSpan.textContent = titleText;
+                }
 
                 const urlDiv = document.createElement('div');
                 urlDiv.className = 'url';
-                urlDiv.innerHTML = searchText ?
-                    highlightText(bookmark.url, searchText) :
-                    bookmark.url;
+                if (searchText) {
+                    urlDiv.innerHTML = safeHighlight(bookmark.url, searchText);
+                } else {
+                    urlDiv.textContent = bookmark.url;
+                }
 
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'bookmark-actions';
@@ -193,12 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const externalIcon = document.createElement('i');
                 externalIcon.className = 'ri-external-link-line icon-action';
                 externalIcon.title = '在新标签页打开';
-
-                bookmarkElement.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('icon-external-link')) {
-                        chrome.tabs.create({ url: bookmark.url });
-                    }
-                });
+                externalIcon.setAttribute('aria-hidden', 'true');
 
                 titleContainer.appendChild(faviconImg);
                 titleContainer.appendChild(titleSpan);
@@ -254,10 +305,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // 主题切换功能
     const themeToggle = document.getElementById('themeToggle');
 
-    // 从存储中获取主题设置
+    // 从存储中获取主题设置，默认亮色
     chrome.storage.sync.get('theme', function (data) {
         if (data.theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
         }
     });
 
@@ -274,31 +327,69 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 添加打赏功能控制
+    // 打赏功能控制
     const donateBtn = document.querySelector('.donate-btn');
     const donateModal = document.getElementById('donateModal');
     const closeBtn = donateModal.querySelector('.close-btn');
 
+    function openModal() {
+        donateModal.classList.add('show');
+        // 聚焦到关闭按钮
+        closeBtn.focus();
+    }
+
+    function closeModal() {
+        donateModal.classList.remove('show');
+        // 返回焦点到触发元素
+        donateBtn.focus();
+    }
+
     donateBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        donateModal.classList.add('show');
+        openModal();
     });
 
     closeBtn.addEventListener('click', () => {
-        donateModal.classList.remove('show');
+        closeModal();
     });
 
     // 点击弹窗外部关闭
     donateModal.addEventListener('click', (e) => {
         if (e.target === donateModal) {
-            donateModal.classList.remove('show');
+            closeModal();
         }
     });
 
-    // ESC 键关闭弹窗
+    // 模态框焦点陷阱 + ESC关闭
+    donateModal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            return;
+        }
+
+        if (e.key === 'Tab') {
+            const focusable = donateModal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])');
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+    });
+
+    // ESC 键关闭弹窗（全局）
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && donateModal.classList.contains('show')) {
-            donateModal.classList.remove('show');
+            closeModal();
         }
     });
 
