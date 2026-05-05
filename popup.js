@@ -203,12 +203,12 @@ document.addEventListener("DOMContentLoaded", function () {
         faviconImg.className = "favicon";
         faviconImg.alt = "";
 
-        // 优化 favicon 获取逻辑
+        // 通过 favicon.im 获取网站图标，失败时回退到扩展默认图标
         const loadFavicon = (url) => {
           try {
             const urlObj = new URL(url);
             const domain = urlObj.hostname;
-            const googleFaviconUrl = `https://favicon.im/${domain}?larger=true`;
+            const faviconServiceUrl = `https://favicon.im/${domain}?larger=true`;
 
             faviconImg.onerror = () => {
               faviconImg.src = "./images/icon128.png";
@@ -216,8 +216,8 @@ document.addEventListener("DOMContentLoaded", function () {
               faviconImg.onerror = null;
             };
 
-            faviconImg.src = googleFaviconUrl;
-            faviconCache.set(url, googleFaviconUrl);
+            faviconImg.src = faviconServiceUrl;
+            faviconCache.set(url, faviconServiceUrl);
           } catch (e) {
             faviconImg.src = "./images/icon128.png";
             faviconCache.set(url, "./images/icon128.png");
