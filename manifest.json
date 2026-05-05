@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "BookmarkSite",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "一个优雅的书签管理器，让您的高效管理和查询书签",
   "author": "bobostudio",
   "homepage_url": "https://github.com/bobostudio/bookmark-site",
-  "permissions": ["bookmarks", "storage"],
+  "permissions": [
+    "bookmarks",
+    "storage"
+  ],
   "host_permissions": [],
   "action": {
     "default_icon": {
